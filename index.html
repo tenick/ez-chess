@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <title>Document</title>
+</head>
+<body>
+    <canvas id="gameCanvas"></canvas>
+    <img id="chess_img" src="chess_pieces.png" alt="Italian Trulli">
+    <script src="piece_classes.js"></script>
+    <script>
+        // turn this relative to current width/height of window
+        WIDTH = 800
+        HEIGHT = 800
+
+        var c = document.getElementById("gameCanvas");
+        c.width = WIDTH;
+        c.height = HEIGHT;
+        
+        var start = Date.now();
+        setInterval(() => {
+            var delta = Date.now() - start; // milliseconds elapsed since start
+
+            var secs = Math.floor(delta / 1000); // in seconds
+            console.log(secs);
+        }, 1000); // update about every second
+        
+        // load chess pieces images
+        var img = new Image();
+        img.onload = function () {
+            // chess board
+            let chess = new Chess(c, img)
+            chess.drawBoard();
+        }
+        img.src = "chess_pieces.png";
+        
+    </script>
+</body>
+</html>
