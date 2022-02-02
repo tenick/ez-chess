@@ -83,7 +83,36 @@ class Knight {
     }
 
     getMoves(row, col){
+        let moves = [];
 
+        let possibleMoves =[[[row - 2, col - 1], "Move"],
+                            [[row - 2, col + 1], "Move"],
+                            [[row - 1, col - 2], "Move"],
+                            [[row + 1, col - 2], "Move"],
+                            [[row + 2, col - 1], "Move"],
+                            [[row + 2, col + 1], "Move"],
+                            [[row - 1, col + 2], "Move"],
+                            [[row + 1, col + 2], "Move"]]
+        
+        for (let i = 0; i < possibleMoves.length; i++){
+            let r = possibleMoves[i][0][0], c = possibleMoves[i][0][1];
+
+            // check first if knight move is in board
+            if (r >= 0 && r < this.chess.board.length && c >= 0 && c < this.chess.board[0].length){
+                // now check if knight move is blocked by your pieces
+                let piece = this.chess.board[r][c]
+                if (piece){
+                    if (piece.player != this.player){
+                        possibleMoves[i][1] = "Take";
+                        moves.push(possibleMoves[i]); 
+                    }
+                }
+                else
+                    moves.push(possibleMoves[i]); 
+            }
+        }
+
+        return moves;
     }
     draw(row, col){
         let cell_width = this.chess.cvs.width / 8
@@ -298,8 +327,16 @@ class Chess {
 
         moves.forEach((val) => {
             let row = val[0][0], col = val[0][1];
-            this.ctx.fillStyle = "#eee";
-            this.ctx.fillRect(col * cell_height, row  * cell_width, cell_width, cell_height);
+
+            // set transparency of next drawings
+            this.ctx.globalAlpha = 0.4;
+
+            this.ctx.beginPath();
+            this.ctx.arc(col * cell_height + (cell_height / 2), row  * cell_width + (cell_width / 2), cell_width / 2 * .5, 0, 2 * Math.PI, false);
+            this.ctx.fillStyle = '#7cd98e';
+            this.ctx.fill();
+            
+            this.ctx.globalAlpha = 1;
         });
 
         // save state
@@ -397,6 +434,8 @@ class Chess {
                 // remove main canvas events, so only this promotion canvas events are listened, add events back on promotion (when user finished selecting promotion piece)
                 this.cvs.removeEventListener('mousedown', this.mouseDownEvent);
 
+                this.eraseLegalMovesIndicator();
+
                 this.promotionCanvas = new PromotionCanvas(this, row, col, this.onPromotion.bind(this));
                 return; // return instead of break, to only switch turns after user finishes selecting promotion piece. Switch turns using a callback instead
         }
@@ -412,7 +451,13 @@ class Chess {
     }
 
     onPromotion(row, col, promotionPiece){
+        // reset/change states
+        this.currentPiece = null;
+        this.currentPiecePos = null;
+        this.currentMoves = null;
+
         this.player = this.player == 1 ? 2 : 1;
+
         this.board[row][col] = promotionPiece;
         this.drawCell(row, col);
 
