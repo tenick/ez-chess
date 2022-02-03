@@ -10,45 +10,41 @@ class Pawn {
 
     getMoves(row, col){
         let moves = [];
+        let steps = [[-1, 0], [-2, 0]];
+        if (this.player == 2)
+            steps = [[1, 0], [2, 0]];
+        
+        steps.forEach((step, i) => {
+            let nRow = row + step[0], nCol = col + step[1];
 
-        // you can heavily simplify this shit
-        if (this.player == 1){
-            // check legal moves 1st
-            if (!this.chess.board[row - 1][col]){ // there's no piece above
-                moves.push([[row - 1, col], "Move"]);
-
-                if (this.moveCount == 0 && !this.chess.board[row - 2][col]) { // first move and there's no piece 1 and 2 squares above the pawn
-                    moves.push([[row - 2, col], "Move"]);
+            // check if cell is valid
+            if (nRow >= 0 && nRow < this.chess.board.length && nCol >= 0 && nCol < this.chess.board[0].length){
+                let piece = this.chess.board[nRow][nCol];
+                if (!piece){
+                    if (i == 1 && moves.length == 1 && this.moveCount == 0)
+                        moves.push([[nRow, nCol], "Move"]);
+                    if (i == 0)
+                        moves.push([[nRow, nCol], "Move"]);
                 }
             }
+        });
 
-            // check legal takes
-            if (col < 7 && this.chess.board[row - 1][col+1] && this.chess.board[row - 1][col+1].player == 2){
-                moves.push([[row - 1, col + 1], "Take"]);
-            }
-            if (col > 0 && this.chess.board[row - 1][col-1] && this.chess.board[row - 1][col-1].player == 2){
-                moves.push([[row - 1, col - 1], "Take"]);
-            }
-        }
-        else{
-            // check legal moves 1st
-            if (!this.chess.board[row + 1][col]){ // there's no piece above
-                moves.push([[row + 1, col], "Move"]);
+        let takes = [[-1, -1], [-1, 1]];
+        if (this.player == 2)
+            takes = [[1, -1], [1, 1]];
 
-                if (this.moveCount == 0 && !this.chess.board[row + 2][col]) { // first move and there's no piece 1 and 2 squares above the pawn
-                    moves.push([[row + 2, col], "Move"]);
+        takes.forEach((take, i) => {
+            let nRow = row + take[0], nCol = col + take[1];
+
+            // check if cell is valid
+            if (nRow >= 0 && nRow < this.chess.board.length && nCol >= 0 && nCol < this.chess.board[0].length){
+                let piece = this.chess.board[nRow][nCol];
+                if (piece && this.player != piece.player){
+                    moves.push([[nRow, nCol], "Take"]);
                 }
             }
-
-            // check legal takes
-            if (col < 7 && this.chess.board[row + 1][col+1] && this.chess.board[row + 1][col+1].player == 1){
-                moves.push([[row + 1, col + 1], "Take"]);
-            }
-            if (col > 0 && this.chess.board[row + 1][col-1] && this.chess.board[row + 1][col-1].player == 1){
-                moves.push([[row + 1, col - 1], "Take"]);
-            }
-        }
-
+        });
+        // todo: en passant
         // todo: check if each pieces are pinned to the king, so the piece cannot move
         
 
