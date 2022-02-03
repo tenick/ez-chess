@@ -143,7 +143,31 @@ class Bishop {
     }
 
     getMoves(row, col){
+        let moves = [];
+        let steps = [[-1, 1], [1, 1], [1, -1], [-1, -1]];
 
+        steps.forEach((step) => {
+            let nRow = row, nCol = col;
+            while (true){
+                nRow += step[0];
+                nCol += step[1];
+
+                // check if cell is valid
+                if (nRow < 0 || nRow >= this.chess.board.length || nCol < 0 || nCol >= this.chess.board[0].length)
+                    break;
+
+                let piece = this.chess.board[nRow][nCol];
+                if (piece){
+                    if (piece.player != this.player)
+                        moves.push([[nRow, nCol], "Take"]);
+                    break;
+                }
+                else
+                    moves.push([[nRow, nCol], "Move"]);
+            }
+        });
+
+        return moves;
     }
     draw(row, col){
         let cell_width = this.chess.cvs.width / 8
@@ -174,7 +198,31 @@ class Rook {
     }
 
     getMoves(row, col){
+        let moves = [];
+        let steps = [[-1, 0], [0, 1], [1, 0], [0, -1]];
 
+        steps.forEach((step) => {
+            let nRow = row, nCol = col;
+            while (true){
+                nRow += step[0];
+                nCol += step[1];
+
+                // check if cell is valid
+                if (nRow < 0 || nRow >= this.chess.board.length || nCol < 0 || nCol >= this.chess.board[0].length)
+                    break;
+
+                let piece = this.chess.board[nRow][nCol];
+                if (piece){
+                    if (piece.player != this.player)
+                        moves.push([[nRow, nCol], "Take"]);
+                    break;
+                }
+                else
+                    moves.push([[nRow, nCol], "Move"]);
+            }
+        });
+
+        return moves;
     }
     draw(row, col){
         let cell_width = this.chess.cvs.width / 8
@@ -205,7 +253,31 @@ class Queen {
     }
 
     getMoves(row, col){
+        let moves = [];
+        let steps = [[-1, 1], [1, 1], [1, -1], [-1, -1], [-1, 0], [0, 1], [1, 0], [0, -1]];
 
+        steps.forEach((step) => {
+            let nRow = row, nCol = col;
+            while (true){
+                nRow += step[0];
+                nCol += step[1];
+
+                // check if cell is valid
+                if (nRow < 0 || nRow >= this.chess.board.length || nCol < 0 || nCol >= this.chess.board[0].length)
+                    break;
+
+                let piece = this.chess.board[nRow][nCol];
+                if (piece){
+                    if (piece.player != this.player)
+                        moves.push([[nRow, nCol], "Take"]);
+                    break;
+                }
+                else
+                    moves.push([[nRow, nCol], "Move"]);
+            }
+        });
+
+        return moves;
     }
     draw(row, col){
         let cell_width = this.chess.cvs.width / 8
@@ -236,7 +308,27 @@ class King {
     }
 
     getMoves(row, col){
+        let moves = [];
+        let steps = [[-1, 1], [1, 1], [1, -1], [-1, -1], [-1, 0], [0, 1], [1, 0], [0, -1]];
 
+        steps.forEach((step) => {
+            let nRow = row, nCol = col;
+            nRow += step[0];
+            nCol += step[1];
+
+            // check if cell is valid
+            if (nRow >= 0 && nRow < this.chess.board.length && nCol >= 0 && nCol < this.chess.board[0].length){
+                let piece = this.chess.board[nRow][nCol];
+                if (piece){
+                    if (piece.player != this.player)
+                        moves.push([[nRow, nCol], "Take"]);
+                }
+                else
+                    moves.push([[nRow, nCol], "Move"]);
+            }
+        });
+
+        return moves;
     }
     draw(row, col){
         let cell_width = this.chess.cvs.width / 8
@@ -329,7 +421,7 @@ class Chess {
             let row = val[0][0], col = val[0][1];
 
             // set transparency of next drawings
-            this.ctx.globalAlpha = 0.4;
+            this.ctx.globalAlpha = 0.5;
 
             this.ctx.beginPath();
             this.ctx.arc(col * cell_height + (cell_height / 2), row  * cell_width + (cell_width / 2), cell_width / 2 * .5, 0, 2 * Math.PI, false);
