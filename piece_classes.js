@@ -6,6 +6,7 @@ class Pawn {
         this.player = player;
         this.moveCount = 0;
         this.doubleStepped = false;
+        this.enPassantPos = null;
     }
 
     getMoves(row, col){
@@ -44,7 +45,26 @@ class Pawn {
                 }
             }
         });
+
         // todo: en passant
+        let enPassants = [[-1, -1], [-1, 1]];
+        if (this.player == 2)
+            enPassants = [[1, -1], [1, 1]];
+        
+        enPassants.forEach((enPassant, i) => {
+            let nRow = row + enPassant[0], nCol = col + enPassant[1];
+
+            // check if cell is valid
+            if (nRow >= 0 && nRow < this.chess.board.length && nCol >= 0 && nCol < this.chess.board[0].length){
+                let rowAdjust = this.player == 1 ? 1 : -1;
+
+                let piece = this.chess.board[nRow + rowAdjust][nCol];
+                if (piece && this.enPassantPos && this.enPassantPos[0] == nRow && this.enPassantPos[1] == nCol && this.player != piece.player && piece.moveCount == 1 && piece.doubleStepped){
+                    moves.push([[nRow, nCol], "EnPassant"]);
+                }
+            }
+        });
+
         // todo: check if each pieces are pinned to the king, so the piece cannot move
         
 
@@ -377,6 +397,8 @@ class Chess {
         this.currentMoves = null;
 
         this.promotionCanvas = null;
+
+        this.pawnThatCanEnPassant = null;
     }
 
     drawBoard(){
@@ -458,6 +480,12 @@ class Chess {
                 let val = this.currentMoves[i];
                 let row = val[0][0], col = val[0][1];
                 if (row == r && col == c) { // meaning user chose to perform this legal move
+
+                    // check if there's a pawn that can en passant, but player didn't en passant. Make that pawn unable to en passant anymore
+                    if (this.pawnThatCanEnPassant && val[1] != "EnPassant"){
+                        this.pawnThatCanEnPassant.enPassantPos = null;
+                        this.pawnThatCanEnPassant = null;
+                    }
                     this.performLegalMove(val);
                     return;
                 }
@@ -487,6 +515,30 @@ class Chess {
                 // check if piece is a pawn
                 if (this.currentPiece.pieceName == "Pawn"){
                     this.currentPiece.moveCount++;
+
+                    this.currentPiece.doubleStepped = Math.abs(this.currentPiecePos[0] - row) == 2;
+
+                    // check if double stepped and 1st move, if so then check possible enemy pawns that can en passant this piece, save those pieces, 
+                    // and if user didn't do en passant on the very next move, the saved pieces can't en passant anymore
+                    if (this.currentPiece.doubleStepped && this.currentPiece.moveCount == 1){
+                        let enPassants = [-1, 1];
+
+                        for (let i = 0; i < enPassants.length; i++){
+                            let nRow = row, nCol = col + enPassants[i];
+
+                            // check if cell is valid
+                            if (nRow >= 0 && nRow < this.board.length && nCol >= 0 && nCol < this.board[0].length){
+                                let piece = this.board[nRow][nCol];
+                                if (piece && this.currentPiece.player != piece.player){
+                                    this.pawnThatCanEnPassant = piece;
+                                    let rowAdjust = this.currentPiece.player == 1 ? -1 : 1;
+                                    this.pawnThatCanEnPassant.enPassantPos = [this.currentPiecePos[0] + rowAdjust, this.currentPiecePos[1]];
+                                    console.log(piece);
+                                    break;
+                                }
+                            }
+                        }
+                    }
 
                     // check if promotion occurs
                     let isPromoting = this.player == 1 ? row == 0 : row == 1;
@@ -526,6 +578,15 @@ class Chess {
 
                 this.promotionCanvas = new PromotionCanvas(this, row, col, this.onPromotion.bind(this));
                 return; // return instead of break, to only switch turns after user finishes selecting promotion piece. Switch turns using a callback instead
+            case "EnPassant":
+                this.board[row][col] = this.currentPiece;
+                this.board[this.currentPiecePos[0]][this.currentPiecePos[1]] = null;
+                let rowAdjust = this.player == 1 ? 1 : -1;
+                this.board[row + rowAdjust][col] = null;
+                this.drawCell(row, col);
+                this.drawCell(this.currentPiecePos[0], this.currentPiecePos[1]);
+                this.drawCell(row + rowAdjust, col);
+                break;
         }
 
         // reset/change states
