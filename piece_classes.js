@@ -46,7 +46,7 @@ class Pawn {
             }
         });
 
-        // todo: en passant
+
         let enPassants = [[-1, -1], [-1, 1]];
         if (this.player == 2)
             enPassants = [[1, -1], [1, 1]];
@@ -65,10 +65,15 @@ class Pawn {
             }
         });
 
-        // todo: check if each pieces are pinned to the king, so the piece cannot move
-        
 
-        return moves;
+        // finally check if moves are safe for the king
+        let finalMoves = [];
+        moves.forEach(move => {
+            if (King.IsMoveSafeForKing(this.chess, move))
+                finalMoves.push(move);
+        });
+
+        return finalMoves;
     }
     draw(row, col, cvs=this.chess.cvs, img=this.chess.img){
         let cell_width = cvs.width / 8
@@ -95,6 +100,7 @@ class Pawn {
 class Knight {
     constructor(player, chess){
         this.chess = chess;
+        this.pieceName = "Knight";
         this.player = player;
     }
 
@@ -155,6 +161,7 @@ class Knight {
 class Bishop {
     constructor(player, chess){
         this.chess = chess;
+        this.pieceName = "Bishop";
         this.player = player;
     }
 
@@ -211,6 +218,8 @@ class Rook {
     constructor(player, chess){
         this.chess = chess;
         this.player = player;
+        this.pieceName = "Rook";
+        this.moveCount = 0;
     }
 
     getMoves(row, col){
@@ -265,6 +274,7 @@ class Rook {
 class Queen {
     constructor(player, chess){
         this.chess = chess;
+        this.pieceName = "Queen";
         this.player = player;
     }
 
@@ -320,6 +330,7 @@ class Queen {
 class King {
     constructor(player, chess){
         this.chess = chess;
+        this.pieceName = "King";
         this.player = player;
     }
 
@@ -365,6 +376,102 @@ class King {
             ctx.drawImage(img, 0, 0, img.width/6 - 52, img.height/2 - 30, col * cell_width, row * cell_height, cell_width, cell_height);
         else
             ctx.drawImage(img, 0, 333, img.width/6 - 52, img.height/2 - 30, col * cell_width, row * cell_height, cell_width, cell_height);
+    }
+    static IsMoveSafeForKing(chess, move){
+        let currentBoard = chess.board.map(arr => {
+            return arr.slice();
+        });
+        let newBoard = chess.performLegalMove(move, currentBoard, true);
+        let isSafe = !King.IsKingChecked(chess.player, newBoard);
+        return isSafe;
+    }
+    static IsKingChecked(player, currentBoard){
+        let kingPos = King.LocateKing(player, currentBoard);
+        let row = kingPos[0], col = kingPos[1];
+        let kingPiece = currentBoard[row][col];
+
+        // must go through all checks to be considered unchecked
+        // check knight squares, and check if there is enemy knight there
+        let knightMoves=[[row - 2, col - 1],
+                         [row - 2, col + 1],
+                         [row - 1, col - 2],
+                         [row + 1, col - 2],
+                         [row + 2, col - 1],
+                         [row + 2, col + 1],
+                         [row - 1, col + 2],
+                         [row + 1, col + 2]];
+        for (let i = 0; i < knightMoves.length; i++){
+            let r = knightMoves[i][0], c = knightMoves[i][1];
+
+            // check first if knight move is in board
+            if (r >= 0 && r < currentBoard.length && c >= 0 && c < currentBoard[0].length){
+                // now check if there is enemy knight in the knight move cell
+                let piece = currentBoard[r][c]
+                if (piece && piece.pieceName == "Knight" && piece.player != kingPiece.player)
+                    return true;
+            }
+        }
+
+        // check for diagonal squares step by step, continue if own piece is found, else king is checked
+        let diagSteps = [[-1, 1], [1, 1], [1, -1], [-1, -1]];
+        
+        for (let i = 0; i < diagSteps.length; i++){
+            let step = diagSteps[i];
+            let nRow = row, nCol = col;
+            while (true){
+                nRow += step[0];
+                nCol += step[1];
+
+                // check if cell is valid
+                if (nRow < 0 || nRow >= currentBoard.length || nCol < 0 || nCol >= currentBoard[0].length)
+                    break;
+
+                let piece = currentBoard[nRow][nCol];
+                if (piece){
+                    if (piece.player != kingPiece.player && (piece.pieceName == "Pawn" || piece.pieceName == "Bishop" || piece.pieceName == "Queen" || piece.pieceName == "King"))
+                        return true;
+                    else
+                        break;
+                }
+            }
+        }
+
+        
+        // check for straight squares step by step, continue if own piece is found, else king is checked
+        let straightSteps = [[-1, 0], [0, 1], [1, 0], [0, -1]];
+
+        for (let i = 0; i < straightSteps.length; i++){
+            let step = straightSteps[i];
+            let nRow = row, nCol = col;
+            while (true){
+                nRow += step[0];
+                nCol += step[1];
+
+                // check if cell is valid
+                if (nRow < 0 || nRow >= currentBoard.length || nCol < 0 || nCol >= currentBoard[0].length)
+                    break;
+
+                let piece = currentBoard[nRow][nCol];
+                if (piece){
+                    if (piece.player != kingPiece.player && (piece.pieceName == "Rook" || piece.pieceName == "King" || piece.pieceName == "Queen"))
+                        return true;
+                    else
+                        break;
+                }
+            }
+        }
+
+        return false;
+    }
+    static LocateKing(player, currentBoard){
+        for (let r = 0; r < currentBoard.length; r++){
+            for (let c = 0; c < currentBoard[r].length; c++){
+                let piece = currentBoard[r][c];
+                if (piece && piece.pieceName == "King" && piece.player == player)
+                    return [r, c];
+            }
+        }
+        return null;
     }
 }
 
@@ -431,7 +538,7 @@ class Chess {
             return;
         
         let moves = piece.getMoves(r, c);
-
+        
         let cell_width = this.cvs.width / 8;
         let cell_height = this.cvs.height / 8;
 
@@ -450,8 +557,6 @@ class Chess {
         });
 
         // save state
-        this.currentPiece = piece;
-        this.currentPiecePos = [r, c];
         this.currentMoves = moves;
     }
 
@@ -492,28 +597,38 @@ class Chess {
             }
         }
 
+        // erase previous moves indicator/highlights
+        this.eraseLegalMovesIndicator();
+
+        // save state and draw new indicator/highlights
         let piece = this.board[r][c];
         if (piece != null && piece.player != this.player)
             piece = null;
 
-        this.eraseLegalMovesIndicator();
+        this.currentPiece = piece;
+        this.currentPiecePos = [r, c];
 
         this.drawLegalMovesIndicator(piece, r, c);
     }
 
-    performLegalMove(move){
+    performLegalMove(move, board=this.board, simulated=false){ // simulated is for just passing own chess board and returning the move result change in that keyboard
         let row = move[0][0], col = move[0][1];
         let action = move[1];
         
+        let cellsAffectedThatNeedRedraw = [];
+
         switch (action){
             case "Move":
-                this.board[row][col] = this.currentPiece;
-                this.board[this.currentPiecePos[0]][this.currentPiecePos[1]] = null;
-                this.drawCell(row, col);
-                this.drawCell(this.currentPiecePos[0], this.currentPiecePos[1]);
+                board[row][col] = this.currentPiece;
+                board[this.currentPiecePos[0]][this.currentPiecePos[1]] = null;
+                cellsAffectedThatNeedRedraw.push([row, col]);
+                cellsAffectedThatNeedRedraw.push([this.currentPiecePos[0], this.currentPiecePos[1]]);
 
+                // count rook and king moves for castle info
+                if (this.currentPiece.pieceName == "Rook" || this.currentPiece.pieceName == "King" && !simulated)
+                    this.currentPiece.moveCount++;
                 // check if piece is a pawn
-                if (this.currentPiece.pieceName == "Pawn"){
+                if (this.currentPiece.pieceName == "Pawn" && !simulated){
                     this.currentPiece.moveCount++;
 
                     this.currentPiece.doubleStepped = Math.abs(this.currentPiecePos[0] - row) == 2;
@@ -527,8 +642,8 @@ class Chess {
                             let nRow = row, nCol = col + enPassants[i];
 
                             // check if cell is valid
-                            if (nRow >= 0 && nRow < this.board.length && nCol >= 0 && nCol < this.board[0].length){
-                                let piece = this.board[nRow][nCol];
+                            if (nRow >= 0 && nRow < board.length && nCol >= 0 && nCol < board[0].length){
+                                let piece = board[nRow][nCol];
                                 if (piece && this.currentPiece.player != piece.player){
                                     this.pawnThatCanEnPassant = piece;
                                     let rowAdjust = this.currentPiece.player == 1 ? -1 : 1;
@@ -550,13 +665,16 @@ class Chess {
                 }
                 break;
             case "Take":
-                this.board[row][col] = this.currentPiece;
-                this.board[this.currentPiecePos[0]][this.currentPiecePos[1]] = null;
-                this.drawCell(row, col);
-                this.drawCell(this.currentPiecePos[0], this.currentPiecePos[1]);
+                board[row][col] = this.currentPiece;
+                board[this.currentPiecePos[0]][this.currentPiecePos[1]] = null;
+                cellsAffectedThatNeedRedraw.push([row, col]);
+                cellsAffectedThatNeedRedraw.push([this.currentPiecePos[0], this.currentPiecePos[1]]);
                 
+                // count rook and king moves for castle info
+                if (this.currentPiece.pieceName == "Rook" || this.currentPiece.pieceName == "King" && !simulated)
+                    this.currentPiece.moveCount++;
                 // check if piece is a pawn
-                if (this.currentPiece.pieceName == "Pawn"){
+                if (this.currentPiece.pieceName == "Pawn" && !simulated){
                     this.currentPiece.moveCount++;
 
                     // check if promotion occurs
@@ -579,24 +697,32 @@ class Chess {
                 this.promotionCanvas = new PromotionCanvas(this, row, col, this.onPromotion.bind(this));
                 return; // return instead of break, to only switch turns after user finishes selecting promotion piece. Switch turns using a callback instead
             case "EnPassant":
-                this.board[row][col] = this.currentPiece;
-                this.board[this.currentPiecePos[0]][this.currentPiecePos[1]] = null;
+                board[row][col] = this.currentPiece;
+                board[this.currentPiecePos[0]][this.currentPiecePos[1]] = null;
                 let rowAdjust = this.player == 1 ? 1 : -1;
-                this.board[row + rowAdjust][col] = null;
-                this.drawCell(row, col);
-                this.drawCell(this.currentPiecePos[0], this.currentPiecePos[1]);
-                this.drawCell(row + rowAdjust, col);
+                board[row + rowAdjust][col] = null;
+                cellsAffectedThatNeedRedraw.push([row, col]);
+                cellsAffectedThatNeedRedraw.push([this.currentPiecePos[0], this.currentPiecePos[1]]);
+                cellsAffectedThatNeedRedraw.push([row + rowAdjust][col]);
                 break;
         }
 
-        // reset/change states
-        this.eraseLegalMovesIndicator();
+        // redraw/reset states
+        if (!simulated){
+            cellsAffectedThatNeedRedraw.forEach((cell) =>{
+                this.drawCell(cell[0], cell[1]);
+            });
+    
+            this.eraseLegalMovesIndicator();
+    
+            this.currentPiece = null;
+            this.currentPiecePos = null;
+            this.currentMoves = null;
+    
+            this.player = this.player == 1 ? 2 : 1;
+        }
 
-        this.currentPiece = null;
-        this.currentPiecePos = null;
-        this.currentMoves = null;
-
-        this.player = this.player == 1 ? 2 : 1;
+        return board;
     }
 
     onPromotion(row, col, promotionPiece){
