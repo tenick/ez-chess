@@ -428,7 +428,7 @@ class King {
 
                 let piece = currentBoard[nRow][nCol];
                 if (piece){
-                    if (piece.player != kingPiece.player && (piece.pieceName == "Pawn" || piece.pieceName == "Bishop" || piece.pieceName == "Queen" || piece.pieceName == "King"))
+                    if (piece.player != kingPiece.player && ((piece.pieceName == "Pawn" && i == 0) || piece.pieceName == "Bishop" || piece.pieceName == "Queen" || (piece.pieceName == "King" && i == 1)))
                         return true;
                     else
                         break;
@@ -453,7 +453,7 @@ class King {
 
                 let piece = currentBoard[nRow][nCol];
                 if (piece){
-                    if (piece.player != kingPiece.player && (piece.pieceName == "Rook" || piece.pieceName == "King" || piece.pieceName == "Queen"))
+                    if (piece.player != kingPiece.player && (piece.pieceName == "Rook" || (piece.pieceName == "King" && i == 0) || piece.pieceName == "Queen"))
                         return true;
                     else
                         break;
