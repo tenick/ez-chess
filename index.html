@@ -20,14 +20,6 @@
         c.width = WIDTH;
         c.height = HEIGHT;
         
-        // start timer
-        var start = Date.now();
-        setInterval(() => {
-            var delta = Date.now() - start; // milliseconds elapsed since start
-
-            var secs = Math.floor(delta / 1000); // in seconds
-            console.log(secs);
-        }, 1000); // update about every second
         
         // load chess pieces images
         var img = new Image();

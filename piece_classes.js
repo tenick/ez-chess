@@ -556,6 +556,93 @@ class King {
     }
 }
 
+class Clock {
+    constructor(chess, p1Time, p2Time, finishClockCallback){
+        // player times (millisecond)
+        this.chess = chess;
+
+        this.timeStart = Date.now();
+
+        this.p1Time = p1Time;
+        this.p2Time = p2Time;
+        this.p1RunningTime = p1Time;
+        this.p2RunningTime = p2Time;
+
+        this.p1ClockInterval = () => {
+            console.clear();
+            var delta = Date.now() - this.timeStart; // milliseconds elapsed since start
+
+            this.p1RunningTime = this.p1Time - delta;
+            var currP1TimeFormatted = Clock.FormatMS(this.p1RunningTime, 'MM:SS');
+            var currP2TimeFormatted = Clock.FormatMS(this.p2Time, 'MM:SS');
+
+            console.log('white: ' + currP1TimeFormatted);
+            console.log('black: ' + currP2TimeFormatted);
+        };
+        this.p2ClockInterval = () => {
+            console.clear();
+            var delta = Date.now() - this.timeStart; // milliseconds elapsed since start
+
+            this.p2RunningTime = this.p2Time - delta;
+            var currP2TimeFormatted = Clock.FormatMS(this.p2RunningTime, 'MM:SS');
+            var currP1TimeFormatted = Clock.FormatMS(this.p1Time, 'MM:SS');
+
+            console.log('white: ' + currP1TimeFormatted);
+            console.log('black: ' + currP2TimeFormatted);
+        };
+
+        this.p1ClockIntervalId = setInterval(this.p1ClockInterval, 100); // updates every 100 ms
+        this.p2ClockIntervalId = null;
+
+    }
+
+    switchClock(){
+        if (this.chess.player == 1){
+            this.timeStart = Date.now();
+            clearInterval(this.p2ClockIntervalId);
+
+            this.p2Time = this.p2RunningTime;
+
+            this.p1ClockIntervalId = setInterval(this.p1ClockInterval, 100);
+        }
+        else{
+            this.timeStart = Date.now();
+            clearInterval(this.p1ClockIntervalId);
+
+            this.p1Time = this.p1RunningTime;
+
+            this.p2ClockIntervalId = setInterval(this.p2ClockInterval, 100);
+        }
+    }
+
+    static FormatMS(ms, format='MM:SS'){
+        // Pad to 2 or 3 digits, default is 2
+        function pad(n, z) {
+            z = z || 2;
+            return ('00' + n).slice(-z);
+        }
+
+        let time = new Date(ms);
+        var formatByTime = {
+            "HH": pad(time.getUTCHours(), 2),
+            "MM": pad(time.getUTCMinutes(), 2),
+            "SS": pad(time.getUTCSeconds(), 2),
+            "mmm": pad(time.getUTCMilliseconds(), 3)
+        }
+        
+
+        var result = [];
+
+        var formats = format.split(':');
+        formats.forEach(val => {
+            if (val in formatByTime)
+                result.push(formatByTime[val]);
+        });
+
+        return result.join(':');
+    }
+}
+
 class Chess {
     constructor(cvs, img) {
         this.cvs = cvs;
@@ -574,6 +661,8 @@ class Chess {
         this.mouseDownEvent = this.mouseDown.bind(this);
         this.cvs.addEventListener('mousedown', this.mouseDownEvent);
 
+        // player clock
+        this.clock = new Clock(this, 60 * 10 * 1000, 60 * 10 * 1000);
         
         // state fields/instance variables
         this.player = 1;
@@ -820,6 +909,8 @@ class Chess {
             this.currentMoves = null;
     
             this.player = this.player == 1 ? 2 : 1;
+
+            this.clock.switchClock();
         }
 
         return board;
