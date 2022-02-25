@@ -657,6 +657,15 @@ class Chess {
                       [new Pawn(1, this), new Pawn(1, this), new Pawn(1, this), new Pawn(1, this), new Pawn(1, this), new Pawn(1, this), new Pawn(1, this), new Pawn(1, this)],
                       [new Rook(1, this), new Knight(1, this), new Bishop(1, this), new Queen(1, this), new King(1, this), new Bishop(1, this), new Knight(1, this), new Rook(1, this)]];
         
+        // rotate board by 180 to show black view
+        let rotatedBoard = [];
+        for (let i = 7; i >= 0; i--){
+            let rotatedRow = []
+            for (let j = 7; j >= 0; j--)
+                rotatedRow.push(this.board[i][j]);
+            rotatedBoard.push(rotatedRow);
+        }
+        //this.board = rotatedBoard;
         // bind this to event methods and save it so it can be removed
         this.mouseDownEvent = this.mouseDown.bind(this);
         this.cvs.addEventListener('mousedown', this.mouseDownEvent);
@@ -685,9 +694,13 @@ class Chess {
                 this.drawCell(i, j);
             }
         }
-        
         // set transparency of next drawings
         //this.ctx.globalAlpha = 0.4;
+        
+        // reset states
+        this.currentPiece = null;
+        this.currentPiecePos = null;
+        this.currentMoves = null;
     }
 
     drawCell(row, col){

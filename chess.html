@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link href='https://fonts.googleapis.com/css?family=Orbitron' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="main-container">
+        <div id="chess-container">
+            <div class="player-ui">
+                <div class="player-info">
+                    <div class="pieces-captured">
+                        
+                    </div>
+                    <div class="player-name">
+
+                    </div>
+                </div>
+                <div class="timer">
+                    00:00:000
+                </div>
+            </div>
+            <div id="chess-canvases">
+                <canvas id="gameCanvas" style="position: absolute; z-index: 2;"></canvas>
+                <canvas id="notationCanvas" style="position: absolute; z-index: 1;"></canvas>
+            </div>
+            <div class="player-ui">
+                <div class="player-info">
+                    <div class="pieces-captured">
+                        
+                    </div>
+                    <div class="player-name">
+
+                    </div>
+                </div>
+                <div class="timer">
+                    00:00:000
+                </div>
+            </div>
+        </div>
+        <div id="chess-interface">
+            
+        </div>
+    </div>
+        
+    <script src="piece_classes.js"></script>
+    <script>
+        //let canvasSize = Math.min(window.innerWidth, window.innerHeight);
+        let canvasContainerSize = document.getElementById('chess-canvases').getBoundingClientRect();
+        let canvasSize = Math.min(canvasContainerSize.width, canvasContainerSize.height);
+        var c = document.getElementById("gameCanvas");
+        var c2 = document.getElementById("notationCanvas");
+        var c2Ctx = c2.getContext('2d');
+        var notationCvsSpaceFactor = .1;
+        var notationTextSizeGapFactor = .5;
+
+        resizeUI();
+        
+        // load chess pieces images
+        var img = new Image();
+        img.onload = main;
+        img.src = "chess_pieces.png";
+        
+        function main() {
+            // chess board
+            let chess = new Chess(c, img);
+            chess.drawBoard();
+
+            // subscribe to resize event
+            window.addEventListener('resize', () => {
+                resizeUI();
+                chess.drawBoard();
+            });
+        }
+
+        function resizeUI() {
+            let UIs = document.getElementsByClassName('player-ui');
+            let chessContainer = document.getElementById('chess-container');
+
+            let canvasContainerSize = document.getElementById('chess-canvases').getBoundingClientRect();
+            let canvasSize = Math.min(canvasContainerSize.width, canvasContainerSize.height);
+            let maxSize = Math.max(canvasContainerSize.width, canvasContainerSize.height);
+
+            let percentage = canvasSize / maxSize * 100;
+            
+            for (let i = 0; i < UIs.length; i++){
+                UIs[i].style.width = percentage + '%';
+            }
+            
+
+            // resize main chess canvas
+            c.width = canvasSize - canvasSize * .1;
+            c.height = canvasSize - canvasSize * .1;
+
+            // resize chess notation canvas
+            c2.width = canvasSize;
+            c2.height = canvasSize;
+            c2Ctx.fillStyle = "#141312";
+            c2Ctx.fillRect(0, 0, canvasSize, canvasSize);
+
+            // draw chess notations
+            let gapSize = canvasSize * notationCvsSpaceFactor / 2;
+            let chessBoardSize = canvasSize - gapSize * 2;
+            let cellSize = chessBoardSize / 8;
+
+            let textSize = gapSize * notationTextSizeGapFactor;
+            let startPosY = gapSize + cellSize / 2 + textSize/2;
+            let posX = gapSize / 2 - textSize / 3;
+
+            
+            let numNotations = [1, 2, 3, 4, 5, 6, 7, 8];
+            let letterNotations = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'];
+
+            for (let i = 7; i >= 0; i--){
+                c2Ctx.font = textSize + "px Monospace";
+                c2Ctx.fillStyle = "#fff";
+                c2Ctx.fillText(numNotations[i], posX , startPosY);
+                startPosY += cellSize;
+            }
+
+            startPosY = gapSize + cellSize / 2 + textSize/2;
+            for (let i = 0; i < 8; i++){
+                c2Ctx.font = textSize + "px Monospace";
+                c2Ctx.fillStyle = "#fff";
+                c2Ctx.fillText(letterNotations[i], startPosY - gapSize / 3, canvasSize - posX);
+                startPosY += cellSize;
+            }
+        }
+
+    </script>
+    
+</body>
+</html>
