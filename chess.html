@@ -79,6 +79,7 @@
 
         function resizeUI() {
             let UIs = document.getElementsByClassName('player-ui');
+            let timers = document.getElementsByClassName('timer');
             let chessContainer = document.getElementById('chess-container');
 
             let canvasContainerSize = document.getElementById('chess-canvases').getBoundingClientRect();
@@ -89,6 +90,8 @@
             
             for (let i = 0; i < UIs.length; i++){
                 UIs[i].style.width = percentage + '%';
+                let uiSize = UIs[i].getBoundingClientRect();
+                timers[i].style.fontSize = uiSize.width * .07 + 'px';
             }
             
 

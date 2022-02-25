@@ -165,6 +165,7 @@
     font-size: 40px;
     display: flex;
     align-items: center;
+    font-style: italic;
     justify-content: center;
 }
 
