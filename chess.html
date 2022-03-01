@@ -11,13 +11,13 @@
 <body>
     <div class="main-container">
         <div id="chess-container">
-            <div class="player-ui">
-                <div class="player-info">
+            <div id="player1-ui">
+                <div id="player1-info">
                     <div class="pieces-captured">
                         
                     </div>
                     <div class="player-name">
-
+                        tenick
                     </div>
                 </div>
                 <div class="timer">
@@ -28,13 +28,13 @@
                 <canvas id="gameCanvas" style="position: absolute; z-index: 2;"></canvas>
                 <canvas id="notationCanvas" style="position: absolute; z-index: 1;"></canvas>
             </div>
-            <div class="player-ui">
-                <div class="player-info">
+            <div id="player2-ui">
+                <div id="player2-info">
                     <div class="pieces-captured">
                         
                     </div>
                     <div class="player-name">
-
+                        nenthity
                     </div>
                 </div>
                 <div class="timer">
@@ -43,7 +43,24 @@
             </div>
         </div>
         <div id="chess-interface">
-            
+            <div id="chess-match-interface">
+                <span class="match-info-text">
+                    10 Mins | 10 Mins
+                </span>
+                <div id="chess-match-btns">
+                    <button id="draw-btn" class="time-ctrl-btn">Draw</button>
+                    <button id="resign-btn" class="time-ctrl-btn">Resign</button>
+                </div>
+            </div>
+            <div id="chess-chat">
+                <div id="chat-history">
+
+                </div>
+                <div id="chat-interface">
+                    <input type="text" name="" class="in" id="chat-textbox">
+                    <button class="time-ctrl-btn" id="send-btn">Send</button>
+                </div>
+            </div>
         </div>
     </div>
         
@@ -78,23 +95,24 @@
         }
 
         function resizeUI() {
-            let UIs = document.getElementsByClassName('player-ui');
+            let UIs = [document.getElementById('player1-ui'), document.getElementById('player2-ui')];
             let timers = document.getElementsByClassName('timer');
-            let chessContainer = document.getElementById('chess-container');
+            let chessContainer = document.getElementById('chess-canvases');
+            chessContainer.style.width = '100%';
+            chessContainer.style.height = '100%';
 
-            let canvasContainerSize = document.getElementById('chess-canvases').getBoundingClientRect();
+            let canvasContainerSize = chessContainer.getBoundingClientRect();
             let canvasSize = Math.min(canvasContainerSize.width, canvasContainerSize.height);
             let maxSize = Math.max(canvasContainerSize.width, canvasContainerSize.height);
 
-            let percentage = canvasSize / maxSize * 100;
-            
+            // resize player UIs
             for (let i = 0; i < UIs.length; i++){
-                UIs[i].style.width = percentage + '%';
+                UIs[i].style.width = canvasSize + 'px';
                 let uiSize = UIs[i].getBoundingClientRect();
                 timers[i].style.fontSize = uiSize.width * .07 + 'px';
             }
             
-
+            
             // resize main chess canvas
             c.width = canvasSize - canvasSize * .1;
             c.height = canvasSize - canvasSize * .1;
@@ -104,6 +122,12 @@
             c2.height = canvasSize;
             c2Ctx.fillStyle = "#141312";
             c2Ctx.fillRect(0, 0, canvasSize, canvasSize);
+
+            
+
+            if (canvasContainerSize.height > canvasContainerSize.width)
+                chessContainer.style.height = canvasContainerSize.width + 'px';
+
 
             // draw chess notations
             let gapSize = canvasSize * notationCvsSpaceFactor / 2;

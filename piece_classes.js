@@ -671,7 +671,7 @@ class Chess {
         this.cvs.addEventListener('mousedown', this.mouseDownEvent);
 
         // player clock
-        this.clock = new Clock(this, 60 * 10 * 1000, 60 * 10 * 1000);
+        //this.clock = new Clock(this, 60 * 10 * 1000, 60 * 10 * 1000);
         
         // state fields/instance variables
         this.player = 1;
