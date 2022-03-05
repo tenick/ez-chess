@@ -1,0 +1,26 @@
+{
+  "name": "ez-chess",
+  "version": "1.0.0",
+  "description": "A simple chess server for playing  with friends online.",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tenick/ez-chess.git"
+  },
+  "keywords": [
+    "chess"
+  ],
+  "author": "Kenneth Usares",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tenick/ez-chess/issues"
+  },
+  "homepage": "https://github.com/tenick/ez-chess#readme",
+  "dependencies": {
+    "express": "^4.17.3"
+  }
+}
