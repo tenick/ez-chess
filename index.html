@@ -9,43 +9,64 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    
     <div class="main-container">
+        <dialog id="custom-TC-dialog">
+            <div id="dialog-x" onclick="dialog.close();">X</div>
+    
+            <span class="in-h">Your Time Control</span>
+            <span class="in-lbl" id="your-mins-lbl">Minutes</span>
+            <input min=".5" max="120" type="range" id="your-mins-range" step=".5" class="in-tc">
+            <span class="in-lbl" id="your-inc-secs-lbl">Secs</span>
+            <input min="0" max="120" type="range" id="your-inc-secs-range" class="in-tc">
+    
+            <span class="in-h">Friend Time Control</span>
+            <span class="in-lbl" id="friend-mins-lbl">Minutes</span>
+            <input min=".5" max="120" type="range" id="friend-mins-range" step=".5" class="in-tc">
+            <span class="in-lbl" id="friend-inc-secs-lbl">Secs</span>
+            <input min="0" max="120" type="range" id="friend-inc-secs-range" class="in-tc">
+    
+            <div id="chess-color-btns">
+                <button id="white-btn" onclick="play('w');"></button>
+                <button id="black-btn" onclick="play('b');"></button>
+            </div>
+        </dialog>
         <div class="container">
             <h1 class="container-label">Select Time Control</h1>
             <div class="time-ctrl-btn-container">
-                <div class="time-ctrl-btn">
+                <div class="time-ctrl-btn" onclick="tcSelected(this);">
                     <h1>30s | 0</h1>
                     <h3>Hyper Bullet</h3>
                 </div>
-                <div class="time-ctrl-btn">
+                <div class="time-ctrl-btn" onclick="tcSelected(this);">
                     <h1>1 | 0</h1>
                     <h3>Bullet</h3>
                 </div>
-                <div class="time-ctrl-btn">
+                <div class="time-ctrl-btn" onclick="tcSelected(this);">
                     <h1>1 | 1</h1>
                     <h3>Bullet</h3>
                 </div>
-                <div class="time-ctrl-btn">
+                <div class="time-ctrl-btn" onclick="tcSelected(this);">
                     <h1>2 | 0</h1>
                     <h3>Bullet</h3>
                 </div>
-                <div class="time-ctrl-btn">
+                <div class="time-ctrl-btn" onclick="tcSelected(this);">
                     <h1>3 | 0</h1>
                     <h3>Blitz</h3>
                 </div>
-                <div class="time-ctrl-btn">
+                <div class="time-ctrl-btn" onclick="tcSelected(this);">
                     <h1>3 | 2</h1>
                     <h3>Blitz</h3>
                 </div>
-                <div class="time-ctrl-btn">
+                <div class="time-ctrl-btn" onclick="tcSelected(this);">
                     <h1>5 | 0</h1>
                     <h3>Blitz</h3>
                 </div>
-                <div class="time-ctrl-btn">
+                <div class="time-ctrl-btn" onclick="tcSelected(this);">
                     <h1>10 | 0</h1>
                     <h3>Rapid</h3>
                 </div>
-                <div class="time-ctrl-btn">
+                <div class="time-ctrl-btn" onclick="tcSelected(this);">
                     <h1>30 | 0</h1>
                     <h3>Classical</h3>
                 </div>
@@ -54,9 +75,64 @@
         <div class="container2">
             <h1 class="text-logo">EZ_Chess</h1>
             <input placeholder="Enter name" class="in" type="text">
-            <button class="btn">Play With a Friend</button>
+            <button class="btn" onclick="dialog.showModal();">Play With a Friend</button>
             <button class="btn">Play With a Computer</button>
         </div>
     </div>
+    
+    <script>
+        let dialog = document.getElementById('custom-TC-dialog');
+
+        var yourMinsSlider = document.getElementById("your-mins-range");
+        var yourIncSecsSlider = document.getElementById("your-inc-secs-range");
+        var friendMinsSlider = document.getElementById("friend-mins-range");
+        var friendIncSecsSlider = document.getElementById("friend-inc-secs-range");
+        
+        var yourMinsLbl = document.getElementById("your-mins-lbl");
+        var yourIncSecsLbl = document.getElementById("your-inc-secs-lbl");
+        var friendMinsLbl = document.getElementById("friend-mins-lbl");
+        var friendIncSecsLbl = document.getElementById("friend-inc-secs-lbl");
+        
+        function play(color) {
+            alert(color);
+        }
+
+        function tcSelected(elem) {
+            let val = elem.firstElementChild.innerHTML;
+            let TCs = val.split(' | ');
+            if (TCs[0].includes('s'))
+                TCs[0] = .5;
+            TCs[0] = parseFloat(TCs[0]);
+            TCs[1] = parseFloat(TCs[1]);
+
+            yourMinsSlider.value = TCs[0];
+            friendMinsSlider.value = TCs[0];
+            yourIncSecsSlider.value = TCs[1];
+            friendIncSecsSlider.value = TCs[1];
+            yourMinsSlider.oninput();
+            friendMinsSlider.oninput();
+            yourIncSecsSlider.oninput();
+            friendIncSecsSlider.oninput();
+
+            dialog.showModal();
+        }
+
+        function addSliderEvent(slider, label, lbl_time_unit) {
+            slider.oninput = () => {
+                let val = slider.value;
+                label.innerHTML = val + " " + lbl_time_unit;
+                if (val > 1)
+                    label.innerHTML += 's';
+                if (lbl_time_unit == 'second')
+                    label.innerHTML += ' increment';
+            };
+            slider.oninput();
+        }
+
+        addSliderEvent(yourMinsSlider, yourMinsLbl, 'minute');
+        addSliderEvent(yourIncSecsSlider, yourIncSecsLbl, 'second');
+        addSliderEvent(friendMinsSlider, friendMinsLbl, 'minute');
+        addSliderEvent(friendIncSecsSlider, friendIncSecsLbl, 'second');
+    </script>
 </body>
 </html>

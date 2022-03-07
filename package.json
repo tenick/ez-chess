@@ -21,6 +21,7 @@
   },
   "homepage": "https://github.com/tenick/ez-chess#readme",
   "dependencies": {
-    "express": "^4.17.3"
+    "express": "^4.17.3",
+    "socket.io": "^4.4.1"
   }
 }

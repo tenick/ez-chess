@@ -1,9 +1,11 @@
 const http = require('http');
 const fs = require('fs');
 const express = require('express');
+const socket = require('socket.io');
 
 const app = express();
-app.listen(8888);
+const server = app.listen(8888);
+const io = socket(server);
 
 app.use(express.static(__dirname));
 
@@ -13,4 +15,9 @@ app.get('/', (req, res) => {
 
 app.get('/chess', (req, res) => {
     res.sendFile('./chess.html', { root: __dirname });
+});
+
+
+io.on('connection', socket => {
+    console.log('socket ' + socket.id + ' connected');
 });

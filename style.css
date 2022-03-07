@@ -12,7 +12,6 @@
 }
 
 body {
-    overflow: hidden; /* Hide scrollbars */
 }
 
 .main-container{
@@ -27,6 +26,112 @@ body {
     height: 100vh;
     justify-content:center;
     align-items: center;
+}
+
+#custom-TC-dialog {
+    text-align: center;
+    font-family: Arial, Helvetica, sans-serif;
+    font-family: 'Orbitron', sans-serif;
+    color: #0f0;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 500px;
+    height: 510px;
+    background: linear-gradient(to bottom, #0c0c0c 0%, rgb(5, 5, 5) 100%, rgb(11, 63, 11) 0%);
+    border: none;
+    border-radius: 10px;
+    box-shadow: 5px 5px 10px rgb(0, 0, 0);
+    padding: 30px 10px;
+}
+
+#chess-color-btns {
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+}
+
+#dialog-x {
+    position: absolute;
+    font-weight: bolder;
+    text-align: center;
+    border-radius: 50%;
+    left: 95%;
+    top: 3%;
+}
+#dialog-x:hover {
+    cursor: pointer;
+    color: white;
+}
+
+#white-btn {
+    width: 100px;
+    height: 100px;
+    background-color: white;
+    border: solid 5px black;
+    border-radius: 10px;
+    transition: 0.2s;
+}
+#black-btn {
+    width: 100px;
+    height: 100px;
+    background-color: black;
+    border: solid 5px white;
+    border-radius: 10px;
+    transition: 0.2s;
+}
+#white-btn:hover {
+    border: solid 0px white;
+    cursor: pointer;
+}
+#black-btn:hover {
+    border: solid 0px black;
+    cursor: pointer;
+}
+
+.in-h {
+    font: inherit;
+    font-size: 35px;
+    font-weight: bold;
+    display: block;
+}
+.in-tc {
+    -webkit-appearance: none;
+    width: 100%;
+    font: inherit;
+    font-size: larger;
+    text-align: center;
+    margin: 0 0 15px 0;
+    color:#0f0;
+    background: black;
+    border: none;
+    border-radius: 5px;
+    padding: 2px;
+}
+
+.in-tc::-webkit-slider-thumb {
+    -webkit-appearance: none; /* Override default look */
+    appearance: none;
+    width: 25px; /* Set a specific slider handle width */
+    height: 25px; /* Slider handle height */
+    background: #04AA6D; /* Green background */
+    cursor: pointer; /* Cursor on hover */
+}
+  
+
+.in-lbl {
+    font: inherit;
+    display: block;
+}
+
+
+
+#custom-TC-dialog::backdrop {
+    background: linear-gradient(
+      rgba(19, 34, 22, 0.5),
+      rgba(0, 0, 0, 0.8)
+    );
 }
 
 .container{
@@ -70,6 +175,7 @@ body {
     color: black;
     border: 1px solid red;
     background-color: white;
+    cursor: pointer;
 }
 
 .in{
@@ -195,7 +301,7 @@ body {
 
 #chess-interface {
     width: 30vw;
-    height: 100vh;
+    height: 80vh;
 }
 
 #chess-match-interface {

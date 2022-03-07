@@ -63,9 +63,12 @@
             </div>
         </div>
     </div>
-        
+    
+    <script src="https://cdn.socket.io/4.4.1/socket.io.js"></script>
     <script src="piece_classes.js"></script>
     <script>
+        var socket = io.connect('http://localhost:8888');
+        
         //let canvasSize = Math.min(window.innerWidth, window.innerHeight);
         let canvasContainerSize = document.getElementById('chess-canvases').getBoundingClientRect();
         let canvasSize = Math.min(canvasContainerSize.width, canvasContainerSize.height);
