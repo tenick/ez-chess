@@ -684,23 +684,46 @@ class Chess {
 
         this.promotionCanvas = null;
 
-        this.pawnThatCanEnPassant = null;
+        this.pawnsThatCanEnPassant = null;
     }
 
     drawBoard(){
+        let cell_width = this.cvs.width / 8;
+        let cell_height = this.cvs.height / 8;
+
         // draw cells
-        for (let i = 0; i < 8; i++){
-            for (let j = 0; j < 8; j++){
-                this.drawCell(i, j);
+        for (let row = 0; row < 8; row++){
+            for (let col = 0; col < 8; col++){
+                this.ctx.fillStyle = (row + col) % 2 == 1 ? "#42352d" : "#ebdbd1";
+                this.ctx.fillRect(col * cell_height, row  * cell_width, cell_width, cell_height);
+
+                let piece = this.board[row][col];
+                if (piece){
+                    piece.draw(row, col);
+                }
             }
         }
-        // set transparency of next drawings
-        //this.ctx.globalAlpha = 0.4;
-        
-        // reset states
-        this.currentPiece = null;
-        this.currentPiecePos = null;
-        this.currentMoves = null;
+
+        if (this.currentMoves){ // draw current moves as well if there is a piece selected
+            // set transparency of next drawings
+            this.ctx.globalAlpha = 0.4;
+
+            this.currentMoves.forEach((val) => {
+                let row = val[0][0], col = val[0][1];
+
+                // set transparency of next drawings
+                this.ctx.globalAlpha = 0.5;
+
+                this.ctx.beginPath();
+                this.ctx.arc(col * cell_height + (cell_height / 2), row  * cell_width + (cell_width / 2), cell_width / 2 * .5, 0, 2 * Math.PI, false);
+                this.ctx.fillStyle = '#7cd98e';
+                this.ctx.fill();
+                
+                this.ctx.globalAlpha = 1;
+            });
+
+            this.ctx.globalAlpha = 1;
+        }
     }
 
     drawCell(row, col){
@@ -716,37 +739,6 @@ class Chess {
         }
     }
 
-    drawLegalMovesIndicator(){
-        let cell_width = this.cvs.width / 8;
-        let cell_height = this.cvs.height / 8;
-
-        this.currentMoves.forEach((val) => {
-            let row = val[0][0], col = val[0][1];
-
-            // set transparency of next drawings
-            this.ctx.globalAlpha = 0.5;
-
-            this.ctx.beginPath();
-            this.ctx.arc(col * cell_height + (cell_height / 2), row  * cell_width + (cell_width / 2), cell_width / 2 * .5, 0, 2 * Math.PI, false);
-            this.ctx.fillStyle = '#7cd98e';
-            this.ctx.fill();
-            
-            this.ctx.globalAlpha = 1;
-        });
-    }
-
-    eraseLegalMovesIndicator(){
-        if (this.currentPiece){ // erase previous drawn moves highlight if there are existing
-            this.currentPiece = null;
-            this.currentPiecePos = null;
-            this.currentMoves.forEach((val) => {
-                let row = val[0][0], col = val[0][1];
-                this.drawCell(row, col);
-            });
-            this.currentMoves = null;
-        }
-    }
-    
     mouseDown(event){
         var rect = this.cvs.getBoundingClientRect();
         var x = event.pageX - rect.left, y = event.pageY - rect.top;
@@ -762,9 +754,9 @@ class Chess {
                 if (row == r && col == c) { // meaning user chose to perform this legal move
 
                     // check if there's a pawn that can en passant, but player didn't en passant. Make that pawn unable to en passant anymore
-                    if (this.pawnThatCanEnPassant && val[1] != "EnPassant"){
-                        this.pawnThatCanEnPassant.enPassantPos = null;
-                        this.pawnThatCanEnPassant = null;
+                    if (this.pawnsThatCanEnPassant && val[1] != "EnPassant"){
+                        this.pawnsThatCanEnPassant.forEach(pawn => pawn.enPassantPos = null);
+                        this.pawnsThatCanEnPassant = null;
                     }
                     this.performLegalMove(val);
                     return;
@@ -772,36 +764,30 @@ class Chess {
             }
         }
         
-        // erase previous drawn moves first if there are existing
-        this.eraseLegalMovesIndicator();
-
-        // now draw legal moves if current player's own piece was selected
+        // now check if current player's own piece was selected, update states accordingly
         let piece = this.board[r][c];
-        if (piece != null && piece.player != this.player)
-            piece = null;
-        if (piece){
-            // save state
+        if (piece && piece.player == this.player) {
             this.currentPiece = piece;
             this.currentPiecePos = [r, c];
             this.currentMoves = piece.getMoves(r, c);
-
-            this.drawLegalMovesIndicator();
+        }
+        else {
+            this.currentPiece = null;
+            this.currentPiecePos = null;
+            this.currentMoves = null;
         }
         
+        this.drawBoard();
     }
 
     performLegalMove(move, board=this.board, simulated=false){ // simulated is for just passing own chess board and returning the move result change in that keyboard
         let row = move[0][0], col = move[0][1];
         let action = move[1];
-        
-        let cellsAffectedThatNeedRedraw = [];
 
         switch (action){
             case "Move":
                 board[row][col] = this.currentPiece;
                 board[this.currentPiecePos[0]][this.currentPiecePos[1]] = null;
-                cellsAffectedThatNeedRedraw.push([row, col]);
-                cellsAffectedThatNeedRedraw.push([this.currentPiecePos[0], this.currentPiecePos[1]]);
 
                 // count rook and king moves for castle info
                 if (this.currentPiece.pieceName == "Rook" || this.currentPiece.pieceName == "King" && !simulated)
@@ -824,11 +810,11 @@ class Chess {
                             if (nRow >= 0 && nRow < board.length && nCol >= 0 && nCol < board[0].length){
                                 let piece = board[nRow][nCol];
                                 if (piece && this.currentPiece.player != piece.player){
-                                    this.pawnThatCanEnPassant = piece;
+                                    if (!this.pawnsThatCanEnPassant)
+                                        this.pawnsThatCanEnPassant = [];
+                                    this.pawnsThatCanEnPassant.push(piece);
                                     let rowAdjust = this.currentPiece.player == 1 ? -1 : 1;
-                                    this.pawnThatCanEnPassant.enPassantPos = [this.currentPiecePos[0] + rowAdjust, this.currentPiecePos[1]];
-                                    console.log(piece);
-                                    break;
+                                    piece.enPassantPos = [this.currentPiecePos[0] + rowAdjust, this.currentPiecePos[1]];
                                 }
                             }
                         }
@@ -846,8 +832,6 @@ class Chess {
             case "Take":
                 board[row][col] = this.currentPiece;
                 board[this.currentPiecePos[0]][this.currentPiecePos[1]] = null;
-                cellsAffectedThatNeedRedraw.push([row, col]);
-                cellsAffectedThatNeedRedraw.push([this.currentPiecePos[0], this.currentPiecePos[1]]);
                 
                 // count rook and king moves for castle info
                 if (this.currentPiece.pieceName == "Rook" || this.currentPiece.pieceName == "King" && !simulated)
@@ -866,12 +850,8 @@ class Chess {
                 }
                 break;
             case "Promote":
-                var rect = this.cvs.getBoundingClientRect();
-
                 // remove main canvas events, so only this promotion canvas events are listened, add events back on promotion (when user finished selecting promotion piece)
                 this.cvs.removeEventListener('mousedown', this.mouseDownEvent);
-
-                this.eraseLegalMovesIndicator();
 
                 this.promotionCanvas = new PromotionCanvas(this, row, col, this.onPromotion.bind(this));
                 return; // return instead of break, to only switch turns after user finishes selecting promotion piece. Switch turns using a callback instead
@@ -880,9 +860,6 @@ class Chess {
                 board[this.currentPiecePos[0]][this.currentPiecePos[1]] = null;
                 let rowAdjust = this.player == 1 ? 1 : -1;
                 board[row + rowAdjust][col] = null;
-                cellsAffectedThatNeedRedraw.push([row, col]);
-                cellsAffectedThatNeedRedraw.push([this.currentPiecePos[0], this.currentPiecePos[1]]);
-                cellsAffectedThatNeedRedraw.push([row + rowAdjust][col]);
                 break;
             case "Castle":
                 // swap king
@@ -901,27 +878,19 @@ class Chess {
                     this.currentPiece.moveCount++;
                     rook.moveCount++;
                 }
-
-                cellsAffectedThatNeedRedraw.push([row, col]);
-                cellsAffectedThatNeedRedraw.push([this.currentPiecePos[0], this.currentPiecePos[1]]);
-                cellsAffectedThatNeedRedraw.push([rookLoc[0], rookLoc[1]]);
-                cellsAffectedThatNeedRedraw.push([rookSwapLoc[0], rookSwapLoc[1]]);
                 break;
         }
 
-        // redraw/reset states
+        // redraw/update states
         if (!simulated){
-            cellsAffectedThatNeedRedraw.forEach((cell) =>{
-                this.drawCell(cell[0], cell[1]);
-            });
-    
-            this.eraseLegalMovesIndicator();
-    
             this.currentPiece = null;
             this.currentPiecePos = null;
             this.currentMoves = null;
+
+            this.drawBoard();
     
             this.player = this.player == 1 ? 2 : 1;
+            console.log(this.player);
 
             this.clock.switchClock();
         }
@@ -938,7 +907,7 @@ class Chess {
         this.player = this.player == 1 ? 2 : 1;
 
         this.board[row][col] = promotionPiece;
-        this.drawCell(row, col);
+        this.drawBoard();
 
         this.cvs.addEventListener('mousedown', this.mouseDownEvent);
         
@@ -966,7 +935,8 @@ class PromotionCanvas{
                             left:"+((chess.cvs.width / 8) * col + rect.left)+"px;\
                             background-color:#eee;\
                             filter: drop-shadow(5px 5px 10px #222);\
-                            border-radius:15px;";
+                            border-radius:15px;\
+                            z-index: 3;";
         cvs.style.cssText = stylestring;
 
         document.body.append(cvs);
@@ -983,7 +953,6 @@ class PromotionCanvas{
         this.mouseMoveEvent = this.mouseMove.bind(this);
         this.cvs.addEventListener('mousedown', this.mouseDownEvent);
         this.cvs.addEventListener('mousemove', this.mouseMoveEvent);
-        
         
         // state fields
         this.currentCellHovered = null;

@@ -17,7 +17,6 @@ app.get('/chess', (req, res) => {
     res.sendFile('./chess.html', { root: __dirname });
 });
 
-
 io.on('connection', socket => {
     console.log('socket ' + socket.id + ' connected');
 });
